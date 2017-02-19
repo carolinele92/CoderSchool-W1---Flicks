@@ -15,7 +15,7 @@ class DetailsVC: UIViewController {
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var dateLabel: UILabel!
     @IBOutlet weak var ratingLabel: UILabel!
-    
+    @IBOutlet weak var voteCountLabel: UILabel!
     @IBOutlet weak var overviewLabel: UILabel!
     @IBOutlet weak var scrollView: UIScrollView!
     @IBOutlet weak var detailsView: UIView!
@@ -46,11 +46,14 @@ class DetailsVC: UIViewController {
         let title = movie["title"] as! String
         let date = movie["release_date"] as! String
         let rating = movie["vote_average"] as! Double
+        let voteCount = movie["vote_count"] as! Int
         let overview = movie["overview"] as! String
+        
         
         titleLabel.text = title
         dateLabel.text = date
         ratingLabel.text = String(rating)
+        voteCountLabel.text = String(voteCount)
         overviewLabel.text = overview
         overviewLabel.sizeToFit()
         

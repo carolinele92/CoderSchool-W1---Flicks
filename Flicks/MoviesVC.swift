@@ -12,35 +12,27 @@ import AFNetworking
 import MBProgressHUD
 
 
-class MoviesVC: UIViewController {
+class MoviesVC: UIViewController, UISearchBarDelegate {
 
     @IBOutlet weak var tableView: UITableView!
-
+    @IBOutlet weak var collectionView: UICollectionView!
     @IBOutlet weak var networkErrorLabel: UILabel!
 
     
-    
     var movies: [NSDictionary]?
-    var selectedImageUrl = ""
     let baseUrl = "http://image.tmdb.org/t/p/w500"
     var endpoint = "now_playing"
     var request: URLRequest!
-    var image: UIImage!
+
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         
-        
-        networkErrorLabel.isHidden = true
+        self.networkErrorLabel.isHidden = true
+        hideTableView()
 
-        
-// --- Pull to Refresh
-        
-        let refreshControl = UIRefreshControl()
-        refreshControl.addTarget(self, action: #selector(refreshControlAction(_:)), for: .valueChanged)
-        tableView.insertSubview(refreshControl, at: 0)
         
         
         
@@ -53,6 +45,7 @@ class MoviesVC: UIViewController {
             url: url!,
             cachePolicy: NSURLRequest.CachePolicy.reloadIgnoringLocalCacheData,
             timeoutInterval: 10)
+        
         
         // Display Progress HUD before making the request
         MBProgressHUD.showAdded(to: self.view, animated: true)
@@ -77,14 +70,14 @@ class MoviesVC: UIViewController {
                                         
                                         self.movies = responseDictionary["results"] as? [NSDictionary]
                                         self.tableView.reloadData()
+                                        self.collectionView.reloadData()
                                         
-                                
                                         
                                     }
                                 }
                                
                                 if error != nil {
-                                    self.networkErrorLabel.text = "Network Error"
+                                    self.networkErrorLabel.text = "No Internet Connection"
                                     self.networkErrorLabel.isHidden = false
                                     
                                 }
@@ -92,7 +85,47 @@ class MoviesVC: UIViewController {
             })
         task.resume()
      
+        
+        
+        
+// --- Pull to Refresh
+        
+        let refreshControl = UIRefreshControl()
+        refreshControl.addTarget(self, action: #selector(refreshControlAction(_:)), for: .valueChanged)
+        tableView.insertSubview(refreshControl, at: 0)
+        collectionView.insertSubview(refreshControl, at: 0)
+        
     }
+    
+    
+                        // --- End of ViewDidLoad ---
+    
+
+// --- Switch to/from TableView CollectionView
+    
+    func hideTableView() {
+        UIView.transition(from: tableView, to: collectionView, duration: 1.0, options: .showHideTransitionViews, completion: nil)
+        navigationItem.rightBarButtonItem?.image = UIImage(named: "list_view")
+    }
+    
+    
+    func hideColectionView() {
+        UIView.transition(from: collectionView, to: tableView, duration: 1.0, options: .showHideTransitionViews, completion: nil)
+        navigationItem.rightBarButtonItem?.image = UIImage(named: "grid_view")
+    }
+
+   
+    @IBAction func viewStyleButtonTapped(_ sender: Any) {
+   
+        if collectionView.isHidden {
+            hideTableView()
+        } else {
+            hideColectionView()
+        }
+    
+    }
+    
+
     
     
 // --- Prepare segue - passing selected movie's API details to DetailsVC
@@ -100,22 +133,35 @@ class MoviesVC: UIViewController {
        override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         
         // Cell Selection
-        let cell = sender as! MovieCell
-        let indexPath = tableView.indexPath(for: cell)
-        let movie = movies![(indexPath!.row)]
         
-        print ("prepare for segue is called")
-        
-        let detailVC = segue.destination as! DetailsVC
-        detailVC.movie = movie
-        
-
-   
-        
+            // For Table View
+        if tableView.isHidden == false {
+            let cell = sender as! UITableViewCell
+            let indexPath = tableView.indexPath(for: cell)
+            let movie = movies![(indexPath!.row)]
+            
+            print ("prepare for segue is called")
+            
+            let detailVC = segue.destination as! DetailsVC
+            detailVC.movie = movie
+            
+            // For Collection View
+        } else {
+            let cell = sender as! UICollectionViewCell
+            let indexPath = collectionView.indexPath(for: cell)
+            let movie = movies![(indexPath!.row)]
+            
+            print ("prepare for segue is called")
+            
+            let detailVC = segue.destination as! DetailsVC
+            detailVC.movie = movie
+            
+        }
+       
     }
  
 
-
+    
 
 // --- Refresh Controll Action
 
@@ -125,6 +171,7 @@ class MoviesVC: UIViewController {
 
         
             self.tableView.reloadData()
+            self.collectionView.reloadData()
             refreshControl.endRefreshing()
         }
         task.resume()
@@ -134,10 +181,9 @@ class MoviesVC: UIViewController {
 
 
 
-// --- TableView
+// --- TableView config.
 
 extension MoviesVC: UITableViewDelegate, UITableViewDataSource {
-    
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
@@ -156,8 +202,10 @@ extension MoviesVC: UITableViewDelegate, UITableViewDataSource {
         let movie = movies?[indexPath.row]
         let title = movie?["title"] as! String
         let overview = movie?["overview"] as! String
+        let date = movie?["release_date"] as! String
         
         cell.titleLabel?.text = title
+        cell.dateLabel?.text = date
         cell.overviewLabel?.text = overview
         cell.overviewLabel.sizeToFit()
         
@@ -178,6 +226,41 @@ extension MoviesVC: UITableViewDelegate, UITableViewDataSource {
 
 
 
+// --- Collection View cofig.
+
+extension MoviesVC: UICollectionViewDelegate, UICollectionViewDataSource {
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        
+        if let movies = movies {
+            return movies.count
+        } else {
+            return 0
+        }
+    }
+    
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "moviesGridCell", for: indexPath) as! CollectionViewCell
+        
+        let movie = movies?[indexPath.row]
+        
+        if let posterPath = movie?["poster_path"] as? String {
+            let imageUrl = (baseUrl + posterPath) as String
+            cell.posterImageView?.setImageWith(NSURL(string: imageUrl) as! URL)
+            
+            
+        } else {
+            cell.posterImageView.image = nil
+        }
+        
+        
+        return cell
+    }
+    
+    
+}
 
 
 
