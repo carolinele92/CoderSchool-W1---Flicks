@@ -7,23 +7,22 @@
 //
 
 import UIKit
-import Foundation
 import AFNetworking
 import MBProgressHUD
 
 
-class MoviesVC: UIViewController, UISearchBarDelegate {
+class MoviesVC: UIViewController {
 
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var collectionView: UICollectionView!
     @IBOutlet weak var networkErrorLabel: UILabel!
-
+    @IBOutlet weak var searchBar: UISearchBar!
     
     var movies: [NSDictionary]?
     let baseUrl = "http://image.tmdb.org/t/p/w500"
     var endpoint = "now_playing"
     var request: URLRequest!
-
+    var filteredMovies: [NSDictionary]? // additional var, represents rows of data that match search text
     
     
     override func viewDidLoad() {
@@ -69,6 +68,7 @@ class MoviesVC: UIViewController, UISearchBarDelegate {
                                         print("response: \(responseDictionary)")
                                         
                                         self.movies = responseDictionary["results"] as? [NSDictionary]
+                                        self.filteredMovies = self.movies
                                         self.tableView.reloadData()
                                         self.collectionView.reloadData()
                                         
@@ -87,7 +87,6 @@ class MoviesVC: UIViewController, UISearchBarDelegate {
      
         
         
-        
 // --- Pull to Refresh
         
         let refreshControl = UIRefreshControl()
@@ -95,10 +94,10 @@ class MoviesVC: UIViewController, UISearchBarDelegate {
         tableView.insertSubview(refreshControl, at: 0)
         collectionView.insertSubview(refreshControl, at: 0)
         
+        
     }
-    
-    
-                        // --- End of ViewDidLoad ---
+
+                            // --- End of ViewDidLoad ---
     
 
 // --- Switch to/from TableView CollectionView
@@ -138,7 +137,7 @@ class MoviesVC: UIViewController, UISearchBarDelegate {
         if tableView.isHidden == false {
             let cell = sender as! UITableViewCell
             let indexPath = tableView.indexPath(for: cell)
-            let movie = movies![(indexPath!.row)]
+            let movie = filteredMovies![(indexPath!.row)]
             
             print ("prepare for segue is called")
             
@@ -149,7 +148,7 @@ class MoviesVC: UIViewController, UISearchBarDelegate {
         } else {
             let cell = sender as! UICollectionViewCell
             let indexPath = collectionView.indexPath(for: cell)
-            let movie = movies![(indexPath!.row)]
+            let movie = filteredMovies![(indexPath!.row)]
             
             print ("prepare for segue is called")
             
@@ -181,13 +180,15 @@ class MoviesVC: UIViewController, UISearchBarDelegate {
 
 
 
+
+
 // --- TableView config.
 
 extension MoviesVC: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         
-        if let movies = movies {
+        if let movies = filteredMovies {
             return movies.count
         } else {
             return 0
@@ -199,7 +200,7 @@ extension MoviesVC: UITableViewDelegate, UITableViewDataSource {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "moviesCell", for: indexPath) as! MovieCell
 
-        let movie = movies?[indexPath.row]
+        let movie = filteredMovies?[indexPath.row]
         let title = movie?["title"] as! String
         let overview = movie?["overview"] as! String
         let date = movie?["release_date"] as! String
@@ -232,7 +233,7 @@ extension MoviesVC: UICollectionViewDelegate, UICollectionViewDataSource {
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         
-        if let movies = movies {
+        if let movies = filteredMovies {
             return movies.count
         } else {
             return 0
@@ -244,7 +245,7 @@ extension MoviesVC: UICollectionViewDelegate, UICollectionViewDataSource {
         
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "moviesGridCell", for: indexPath) as! CollectionViewCell
         
-        let movie = movies?[indexPath.row]
+        let movie = filteredMovies?[indexPath.row]
         
         if let posterPath = movie?["poster_path"] as? String {
             let imageUrl = (baseUrl + posterPath) as String
@@ -261,6 +262,34 @@ extension MoviesVC: UICollectionViewDelegate, UICollectionViewDataSource {
     
     
 }
+
+
+// --- Search bar
+
+extension MoviesVC: UISearchBarDelegate {
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        
+        filteredMovies = searchText.isEmpty ? movies : movies!.filter { (movie: NSDictionary) -> Bool in
+            
+            let title = movie["title"] as! String
+            // If title matches the searchText, return true to include it
+            return title.range(of: searchText, options: .caseInsensitive, range: nil, locale: nil) != nil
+                    
+        }
+        
+        tableView.reloadData()
+        collectionView.reloadData()
+        
+    }
+ 
+}
+
+
+
+
+
+
 
 
 

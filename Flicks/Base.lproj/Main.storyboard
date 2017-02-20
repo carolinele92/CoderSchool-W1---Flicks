@@ -18,7 +18,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" misplaced="YES" dataMode="prototypes" id="xPo-pw-Oo8">
-                                <rect key="frame" x="0.0" y="64" width="375" height="603"/>
+                                <rect key="frame" x="0.0" y="108" width="375" height="559"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" red="0.098039217289999994" green="0.098039217289999994" blue="0.098039217289999994" alpha="1" colorSpace="calibratedRGB"/>
                                 <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="5" minimumInteritemSpacing="5" id="eYe-Ad-zTw">
@@ -56,7 +56,7 @@
                                 </connections>
                             </collectionView>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" misplaced="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" rowHeight="142" sectionHeaderHeight="28" sectionFooterHeight="28" id="2XZ-sY-QJq">
-                                <rect key="frame" x="0.0" y="64" width="375" height="603"/>
+                                <rect key="frame" x="0.0" y="108" width="375" height="559"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" red="0.098039217289999994" green="0.098039217289999994" blue="0.098039217289999994" alpha="1" colorSpace="calibratedRGB"/>
                                 <color key="separatorColor" red="0.098039217289999994" green="0.098039217289999994" blue="0.098039217289999994" alpha="0.95216181506849318" colorSpace="calibratedRGB"/>
@@ -118,6 +118,14 @@
                                 <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <searchBar contentMode="redraw" misplaced="YES" id="Ebh-tI-dQ6">
+                                <rect key="frame" x="0.0" y="64" width="375" height="44"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                                <textInputTraits key="textInputTraits"/>
+                                <connections>
+                                    <outlet property="delegate" destination="BYZ-38-t0r" id="Li4-Bg-JOw"/>
+                                </connections>
+                            </searchBar>
                         </subviews>
                         <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.90159460616438358" colorSpace="calibratedRGB"/>
                     </view>
@@ -132,6 +140,7 @@
                     <connections>
                         <outlet property="collectionView" destination="xPo-pw-Oo8" id="t8g-g0-ntX"/>
                         <outlet property="networkErrorLabel" destination="vcO-0u-x3d" id="YzC-6n-9cH"/>
+                        <outlet property="searchBar" destination="Ebh-tI-dQ6" id="4a6-GT-5E8"/>
                         <outlet property="tableView" destination="2XZ-sY-QJq" id="Xlp-xr-HRK"/>
                     </connections>
                 </viewController>
